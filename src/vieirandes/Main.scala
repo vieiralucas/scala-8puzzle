@@ -17,21 +17,23 @@ object Main extends App {
   7, 8, 0
   */
 
-  val board = Board.reversedBoard
- // println(board)
+  val board = Board(matrix, Position(1, 2))
 
-  val solution = Manhattan.search(board)
-  println(solution.size)
-  val solved = board.applySolution(solution)
-  println(solved)
-
+  var t0 = System.nanoTime()
   val solutionWithConflict = ManhattanWithLinearConflict.search(board)
+  var t1 = System.nanoTime()
+  println("Elapsed time: " + (t1 - t0) + "ns")
+
   println(solutionWithConflict.size)
-  val solvedConf = board.applySolution(solutionWithConflict)
+  var solvedConf = board.applySolution(solutionWithConflict)
   println(solvedConf)
 
- // val depthSolution = DepthFirst.search(board)
- // println(depthSolution.size)
-  //val depthSolved = board.applySolution(depthSolution)
-  //println(depthSolved)
+  t0 = System.nanoTime()
+  val solution = Manhattan.search(board)
+  t1 = System.nanoTime()
+  println("Elapsed time: " + (t1 - t0) + "ns")
+
+  println(solutionWithConflict.size)
+  solvedConf = board.applySolution(solutionWithConflict)
+  println(solvedConf)
 }
