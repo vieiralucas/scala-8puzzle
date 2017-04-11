@@ -4,7 +4,9 @@ package vieirandes
   * Created by lucas on 3/24/17.
   */
 trait Search {
-  def search(board: Board): List[Position]
+  case class Stats(evaluations: Int, biggestFrontier: Int)
+
+  def search(board: Board): (List[Position], Stats)
 
   def expand(expansion: Expansion): List[Expansion] = {
     val board = expansion.board

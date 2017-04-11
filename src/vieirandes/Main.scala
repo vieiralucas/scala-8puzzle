@@ -19,21 +19,43 @@ object Main extends App {
 
   val board = Board(matrix, Position(1, 2))
 
+  println("Heurística: Manhattan Distance + Linear Conflict")
+  println("Tabuleiro inicial:\n" + board)
   var t0 = System.nanoTime()
-  val solutionWithConflict = ManhattanWithLinearConflict.search(board)
+  val (solutionWithConflict, conflictStats) = ManhattanWithLinearConflict.search(board)
   var t1 = System.nanoTime()
-  println("Elapsed time: " + (t1 - t0) + "ns")
+  println("Tempo decorrido: " + (t1 - t0) + "ns")
+  println("Tamanho da solução: " + solutionWithConflict.size)
+  println("Quantidade total de estados avaliados: " + conflictStats.evaluations)
+  println("Tamanho máximo da fronteira: " + conflictStats.biggestFrontier)
+  println("Sequência de jogadas:")
+  solutionWithConflict.foreach(println)
+  println("\nTabuleiros intermediarios: ")
+  var interBoard = board
+  solutionWithConflict.foreach(s => {
+    println(interBoard)
+    interBoard = interBoard.move(s)
+  })
+  println(interBoard)
 
-  println(solutionWithConflict.size)
-  var solvedConf = board.applySolution(solutionWithConflict)
-  println(solvedConf)
+  println("###########################")
 
+  println("Heurística: Apenas Manhattan Distance")
+  println("Tabuleiro inicial:\n" + board)
   t0 = System.nanoTime()
-  val solution = Manhattan.search(board)
+  val (solution, stats) = ManhattanWithLinearConflict.search(board)
   t1 = System.nanoTime()
-  println("Elapsed time: " + (t1 - t0) + "ns")
-
-  println(solutionWithConflict.size)
-  solvedConf = board.applySolution(solutionWithConflict)
-  println(solvedConf)
+  println("Tempo decorrido: " + (t1 - t0) + "ns")
+  println("Tamanho da solução: " + solution.size)
+  println("Quantidade total de estados avaliados: " + stats.evaluations)
+  println("Tamanho máximo da fronteira: " + stats.biggestFrontier)
+  println("Sequência de jogadas:")
+  solution.foreach(println)
+  println("\nTabuleiros intermediarios: ")
+  interBoard = board
+  solution.foreach(s => {
+    println(interBoard)
+    interBoard = interBoard.move(s)
+  })
+  println(interBoard)
 }

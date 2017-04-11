@@ -8,16 +8,13 @@ import scala.collection.mutable.{PriorityQueue}
   */
 object Manhattan extends Search {
   case class ManhattanExpansion(steps: List[Position], board: Board, penalty: Int) extends Expansion
-  override def search(board: Board): List[Position] = {
+  override def search(board: Board): (List[Position], Stats) = {
     @tailrec
     def searchLoop(current: ManhattanExpansion,
                    frontier: PriorityQueue[ManhattanExpansion],
                    visiteds: Map[Board, Int],
-                   bestWin: Option[ManhattanExpansion]): List[Position] = {
-      if (current.board.win && current.steps.size < 40) {
-        return current.steps.reverse
-      }
-
+                   bestWin: Option[ManhattanExpansion],
+                   stats: Stats): (List[Position], Stats) = {
       val bestWinSize = bestWin.map(_.steps.size).getOrElse(-1)
       val newBestWin = if (current.board.win && (bestWinSize == -1 || bestWinSize > current.steps.size))
         Some(current)
@@ -37,15 +34,24 @@ object Manhattan extends Search {
 
       val newFrontier = frontier ++ expansions
 
+      val newBiggestFrontier = if (stats.biggestFrontier < newFrontier.size) newFrontier.size else stats.biggestFrontier
+      val newStats = Stats(evaluations = stats.evaluations + 1, biggestFrontier = newBiggestFrontier)
+
       if (newFrontier.size <= 0) {
-        newBestWin.map(_.steps).getOrElse(List.empty).reverse
+        (newBestWin.map(_.steps).getOrElse(List.empty).reverse, stats)
       } else {
         val nextCurrent = newFrontier.dequeue
-        searchLoop(nextCurrent, newFrontier, newVisiteds, newBestWin)
+        searchLoop(nextCurrent, newFrontier, newVisiteds, newBestWin, newStats)
       }
     }
 
-    searchLoop(ManhattanExpansion(List.empty, board, 0), PriorityQueue.empty[ManhattanExpansion](Ordering.by((_: ManhattanExpansion).penalty).reverse), Map.empty, None)
+    searchLoop(
+      ManhattanExpansion(List.empty, board, 0),
+      PriorityQueue.empty[ManhattanExpansion](Ordering.by((_: ManhattanExpansion).penalty).reverse),
+      Map.empty,
+      None,
+      Stats(0, 0)
+    )
   }
 }
 
