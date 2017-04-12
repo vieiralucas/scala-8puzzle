@@ -12,6 +12,7 @@ object Manhattan extends Search {
     @tailrec
     def searchLoop(current: ManhattanExpansion,
                    frontier: PriorityQueue[ManhattanExpansion],
+                   onFrontier: Set[(Board, Int)],
                    visiteds: Map[Board, Int],
                    bestWin: Option[ManhattanExpansion],
                    stats: Stats): (List[Position], Stats) = {
@@ -29,10 +30,12 @@ object Manhattan extends Search {
         .map(e => ManhattanExpansion(e.steps, e.board, current.penalty + e.board.manhattan))
         .filter(e => {
           val visitedSize = newVisiteds.get(e.board).getOrElse(-1)
-          visitedSize == -1 || (visitedSize > e.steps.size)
+          (visitedSize == -1 || (visitedSize > e.steps.size)) && !onFrontier.contains((e.board, e.steps.size))
         })
 
       val newFrontier = frontier ++ expansions
+
+      val newOnFrontier = onFrontier ++ expansions.map(e => (e.board, e.steps.size))
 
       val newBiggestFrontier = if (stats.biggestFrontier < newFrontier.size) newFrontier.size else stats.biggestFrontier
       val newStats = Stats(evaluations = stats.evaluations + 1, biggestFrontier = newBiggestFrontier)
@@ -41,13 +44,14 @@ object Manhattan extends Search {
         (newBestWin.map(_.steps).getOrElse(List.empty).reverse, stats)
       } else {
         val nextCurrent = newFrontier.dequeue
-        searchLoop(nextCurrent, newFrontier, newVisiteds, newBestWin, newStats)
+        searchLoop(nextCurrent, newFrontier, newOnFrontier, newVisiteds, newBestWin, newStats)
       }
     }
 
     searchLoop(
       ManhattanExpansion(List.empty, board, 0),
       PriorityQueue.empty[ManhattanExpansion](Ordering.by((_: ManhattanExpansion).penalty).reverse),
+      Set.empty,
       Map.empty,
       None,
       Stats(0, 0)
